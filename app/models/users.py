@@ -16,3 +16,7 @@ class Users(Base):
     password: Mapped[str]
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
+    posts = relationship(
+        "Posts",
+        back_populates="user",
+    )
