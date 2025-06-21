@@ -60,6 +60,4 @@ class AuthService:
                         raise HTTPException(status_code=401, detail="Username or password incorrect! Try again!")
                 else:
                     raise HTTPException(status_code=403, detail="Npt")
-
-                
                 

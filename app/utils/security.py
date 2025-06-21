@@ -11,6 +11,7 @@ config = AuthXConfig()
 config.JWT_SECRET_KEY = os.getenv("SECRET_JWT_KEY")
 config.JWT_ACCESS_COOKIE_NAME = "access_token"
 config.JWT_TOKEN_LOCATION = ["cookies"]
+config.JWT_COOKIE_CSRF_PROTECT = False
 
 auth = AuthX(config=config)
 

@@ -11,8 +11,8 @@ class UserServies:
             query = (
                 select(Users)
                 .filter(Users.id == int(user_id))
+                .options(selectinload(Users.posts))
             )
-
             res = await sn.execute(query)
-            user = res.scalar_one()
+            user = res.scalar_one_or_none()
             return user

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-from services.auth_service import AuthService
 from services.user_service import UserServies
 from schemas.users import UserResponse
 from utils.security import auth

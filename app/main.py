@@ -1,11 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, Header, HTTPException, Request
+from fastapi.security import APIKeyHeader
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Annotated
 import uvicorn
-from create_db import create_db
-import asyncio
 from routers.auth import AuthRouter
 from routers.users import UserRouter
-from fastapi.middleware.cors import CORSMiddleware
-
+from routers.posts import PostRouter
+from create_db import create_db
 
 app = FastAPI()
 
@@ -16,10 +17,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 auth_router = AuthRouter()
 user_router = UserRouter()
+post_router = PostRouter()
 app.include_router(auth_router.router)
 app.include_router(user_router.router)
+app.include_router(post_router.router)
+
 @app.on_event("startup")
 async def startup():
     await create_db()
