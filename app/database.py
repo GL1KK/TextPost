@@ -1,4 +1,4 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import String
 from config import settings
@@ -18,3 +18,14 @@ class Base(DeclarativeBase):
     type_annotation_map = {
         username_20: String(20)
     }
+
+
+async def get_db() -> AsyncSession:
+    async with session() as sn:
+        try:
+            yield sn
+        except Exception:
+            await sn.rollback()
+            raise
+        finally:
+            await sn.close()

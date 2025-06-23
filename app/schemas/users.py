@@ -8,7 +8,6 @@ class UserResponse(BaseModel):
     username: str
     created_at: datetime
     updated_at: datetime
-    posts:  Optional[list["PostResponse"]] = None
 
     class Config:
         from_attributes = True

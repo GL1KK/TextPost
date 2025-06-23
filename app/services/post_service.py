@@ -1,51 +1,70 @@
-from models.posts import Posts
-from .user_service import UserServies
 from sqlalchemy.exc import IntegrityError, DBAPIError
-from sqlalchemy import text, select, and_, cast, delete
-from sqlalchemy.orm import selectinload, joinedload
-from datetime import datetime
-from database import Base, engine, session
-from utils.security import Security, config
-from fastapi import HTTPException, Response
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException, Depends
+from models.posts import Posts
+from typing import Optional, Dict, Any
+from database import get_db
 
-class PostServies:
+class PostService: 
     
-    def __init__(self):
-        self.__user_servies = UserServies()
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
-    async def new_post(self, title: str ,data: str, user_id: int):
-        async with session() as sn:
-            try:
-                post = Posts(
-                    title=title,
-                    data=data,
-                    user_id=user_id,
-                )
-                user = await self.__user_servies.get_profile(user_id=str(user_id))
-                sn.add(post)
-                await sn.commit()
-                await sn.refresh(post)
-                return post
-            except Exception as e:
-                return str(e)
-    
+    async def new_post(self, title: str, data: str, user_id: int):
+        try:
+            post = Posts(
+                title=title,
+                data=data,
+                user_id=user_id,
+            )
+            
+            self.session.add(post)
+            await self.session.commit()
+            await self.session.refresh(post)
+            
+            return post
+            
+        except IntegrityError:
+            await self.session.rollback()
+            raise HTTPException(status_code=400, detail="Invalid data")
+        except DBAPIError as e:
+            await self.session.rollback()
+            raise HTTPException(status_code=500, detail="Database error")
+        except Exception as e:
+            await self.session.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
+
     async def delete_post(self, post_id: int):
-        async with session() as sn:
-            try:
-                query = (
-                    select(Posts)
-                    .filter(Posts.id == post_id)
-                )
-                res = await sn.execute(query)
-                post = res.scalars().first()
-                if not post:
-                    raise HTTPException(status_code=404, detail="Post not found!")
+        try:
+            query = (
+                select(Posts)
+                .filter(Posts.id == post_id)
+            )
+            res = await self.session.execute(query)
+            post = res.scalar_one_or_none()
+            if not post:
+                raise HTTPException(status_code=404, detail="Post not found")
 
-                await sn.delete(post)
-                await sn.commit()
-                return{
-                    "Message": "Deleted!"
-                }
-            except Exception as e:
-                await sn.rollback()
-                return str(e)
+            await self.session.delete(post)
+            await self.session.commit()
+            
+            return {"message": "Post deleted successfully"}
+            
+        except Exception as e:
+            await self.session.rollback()
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def get_post_title(self, title: str) -> list[Posts]:
+        query = (
+            select(Posts)
+            .filter(Posts.title == title)
+        )
+        res = await self.session.execute(query)
+        posts = res.scalars.all()
+        return posts
+    
+async def get_post_service(
+    session: AsyncSession = Depends(get_db)
+):
+    return PostService(session)
