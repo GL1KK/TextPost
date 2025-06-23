@@ -55,7 +55,8 @@ poetry shell
 uvicorn main:app --reload
 ```
 
-Swagger документация | ReDoc документация
+Swagger документация: http://localhost/8000/docs
+
 ℹ️ Важная информация
 
 Перед запуском убедитесь, что:
