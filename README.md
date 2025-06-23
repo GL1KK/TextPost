@@ -50,6 +50,9 @@ EOL
 
 # Активировать виртуальное окружение Poetry
 poetry shell
+source venv/bin/activate # Только под Linux!
+# Перейдите к проекту
+cd app
 
 # Запустить сервер
 uvicorn main:app --reload
