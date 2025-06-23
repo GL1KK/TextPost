@@ -24,6 +24,6 @@ class PostRouter:
     async def get_post_title(self, title: str, post_service: PostService = Depends(get_post_service)):
         posts = await post_service.get_post_title(title=title)
         return posts
-    async def update_post(self, post_id: int, post_update: PostUpdate, post_service: PostService = Depends(get_post_service)):
+    async def update_post(self, post_id: int, post_update: PostUpdate, post_service: PostService = Depends(get_post_service), depends: str = Depends(auth.access_token_required)):
         post = await post_service.update_post(post_id=post_id, title=post_update.title, data=post_update.data)
         return post

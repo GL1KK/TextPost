@@ -55,7 +55,7 @@ class PostService:
             await self.session.rollback()
             raise HTTPException(status_code=500, detail=str(e))
 
-    async def get_post_title(self, title: str) -> list[Posts]:
+    async def get_post_title(self, title: str):
         query = (
             select(Posts)
             .filter(Posts.title == title)
