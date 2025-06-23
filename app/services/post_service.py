@@ -3,7 +3,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, Depends
 from models.posts import Posts
-from typing import Optional, Dict, Any
+from typing import Optional
 from database import get_db
 
 class PostService: 
@@ -61,9 +61,27 @@ class PostService:
             .filter(Posts.title == title)
         )
         res = await self.session.execute(query)
-        posts = res.scalars.all()
+        posts = res.scalars().all()
         return posts
     
+    async def update_post(self, post_id: int, title: Optional[str], data: Optional[str]):
+        query = (
+            select(Posts)
+            .filter(Posts.id == post_id)
+        )
+        res = await self.session.execute(query)
+        post = res.scalar_one_or_none()
+        if post is None:
+            raise HTTPException(status_code=404, detail="Post not found :(")
+        
+        if data != "string":
+            post.data = data
+        if title != "string":
+            post.title = title
+        await self.session.commit()
+        await self.session.refresh(post)
+
+        return post
 async def get_post_service(
     session: AsyncSession = Depends(get_db)
 ):
